@@ -1,0 +1,56 @@
+name: Build Android APK
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova Project
+        run: |
+          cordova create app com.bolai.app BolAIApp
+          cd app
+          cordova platform add android
+          # Remove default files
+          rm -rf www/*
+
+      - name: Copy User Website
+        run: |
+          # Copy your website files into Cordova www folder
+          # Assuming your HTML is in a folder named 'public' or root
+          cp -r public/* app/www/ || cp -r * app/www/ 2>/dev/null || true
+          # Ensure index.html exists
+          if [ ! -f app/www/index.html ]; then
+            echo "<h1>Error: No index.html found</h1>" > app/www/index.html
+          fi
+
+      - name: Build APK
+        run: |
+          cd app
+          cordova build android --release -- --packageType=apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: bol-ai-app-release
+          path: app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
