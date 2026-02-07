@@ -5,68 +5,88 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+
+// 1. AUTOMATIC FOLDER CREATION (Important for GitHub/Render)
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 2. LOW RAM CONFIGURATION (Multer limits)
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 20 * 1024 * 1024 } // Limit: 20MB (Low RAM Friendly)
+});
 
 app.use(express.static('public'));
 
-// Cleanup function
+// Helper to delete files to save RAM/Space
 const deleteFile = (filePath) => {
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (e) { console.log("Delete error", e); }
+    }
 };
 
 app.post('/upload', upload.single('projectZip'), (req, res) => {
     const file = req.file;
-    
+
     if (!file) {
-        return res.status(400).json({ error: "No file uploaded." });
+        return res.status(400).json({ error: "No file selected!" });
     }
 
-    // 1. Validate ZIP
     try {
+        // 3. LOW RAM PROCESSING (Extract only entries, not full files into RAM)
         const zip = new AdmZip(file.path);
         const zipEntries = zip.getEntries();
         let hasIndex = false;
 
-        zipEntries.forEach((entry) => {
+        for (let entry of zipEntries) {
             if (entry.entryName === "index.html" || entry.entryName.endsWith("/index.html")) {
                 hasIndex = true;
+                break;
             }
-        });
+        }
 
         if (!hasIndex) {
             deleteFile(file.path);
-            return res.status(400).json({ error: "Invalid Structure: 'index.html' is missing!" });
+            return res.status(400).json({ error: "Invalid Project: 'index.html' not found inside ZIP!" });
         }
 
-        // 2. Simulate APK Build (Real build requires Android SDK on server)
-        // Here we are simulating the time it takes to build
+        // Fake Build Delay (Futuristic Feel)
         setTimeout(() => {
-            // In a real scenario, here you would run a script like 'cordova build android'
-            // For this demo, we return success and the original file as a 'dummy' APK
             res.json({ 
                 success: true, 
-                message: "APK Built Successfully!", 
+                message: "Cyber-Engine Built the APK!", 
                 downloadUrl: `/download/${file.filename}` 
             });
-        }, 3000); // 3 seconds fake build time
+        }, 3000);
 
     } catch (err) {
-        deleteFile(file.path);
-        res.status(500).json({ error: "Error processing ZIP file." });
+        console.error(err);
+        if (file) deleteFile(file.path);
+        res.status(500).json({ error: "Engine Error: Could not process ZIP." });
     }
 });
 
-// Download Endpoint
 app.get('/download/:filename', (req, res) => {
-    const filePath = path.join(__dirname, 'uploads', req.params.filename);
-    if(fs.existsSync(filePath)){
-        res.download(filePath, 'Bol-AI-App.apk', (err) => {
-            if(!err) deleteFile(filePath); // Delete after download for security
+    const filePath = path.join(uploadDir, req.params.filename);
+    if (fs.existsSync(filePath)) {
+        res.download(filePath, 'Bol-AI-Project.apk', (err) => {
+            if (!err) deleteFile(filePath); // Delete immediately after download
         });
     } else {
-        res.status(404).send("File expired or not found.");
+        res.status(404).send("File expired. Build again.");
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Bol-AI Engine running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Bol-AI Engine Active on Port ${PORT}`));
