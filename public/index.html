@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bol-AI APK Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="background-overlay"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="neon-text">BOL-AI <span class="accent">BUILDER</span></h1>
+            <p class="subtitle">Convert Web Projects to Android APK Instantly</p>
+        </header>
+
+        <!-- Main Card -->
+        <main class="glass-card">
+            
+            <!-- Section 1: Upload -->
+            <div id="uploadSection">
+                <div class="drop-zone" id="dropZone">
+                    <div class="icon">📂</div>
+                    <h3>Drag & Drop ZIP File</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="fileInput" accept=".zip" hidden>
+                </div>
+                <p class="info-text">Must contain <b>index.html</b></p>
+                <div id="errorMsg" class="error-box hidden"></div>
+            </div>
+
+            <!-- Section 2: Processing -->
+            <div id="processSection" class="hidden">
+                <div class="loader">
+                    <div class="scanner"></div>
+                </div>
+                <h3 id="statusText">Initializing Bol-AI Engine...</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- Section 3: Success -->
+            <div id="successSection" class="hidden">
+                <div class="success-icon">✅</div>
+                <h2>APK Ready!</h2>
+                <p>Your project has been compiled successfully.</p>
+                <a id="downloadBtn" href="#" class="neon-button">DOWNLOAD APK</a>
+                <button id="resetBtn" class="text-button">Build Another</button>
+            </div>
+
+        </main>
+
+        <footer>
+            Powered by <span class="accent">Bol-AI Engine</span>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
