@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bol AI - Android Project Maker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip Library to create project structure -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col items-center p-5">
+
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-green-500">Bol AI App Maker</h1>
+        <p class="text-gray-400 mt-2">अपना HTML कोड डालें और पूरा Android Source Code प्राप्त करें</p>
+    </header>
+
+    <main class="w-full max-w-4xl bg-gray-800 p-6 rounded-lg shadow-xl border border-gray-700">
+        <label class="block mb-2 text-lg font-medium">Index.html का कोड यहाँ पेस्ट करें:</label>
+        <textarea id="userHtml" class="w-full h-80 p-4 bg-gray-900 text-green-400 border border-gray-600 rounded-md focus:ring-2 focus:ring-green-500 outline-none font-mono" placeholder="<!DOCTYPE html>..."></textarea>
+
+        <div class="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="generateProject()" id="btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+                Build Full Project Zip
+            </button>
+        </div>
+        
+        <p id="status" class="mt-4 text-center text-yellow-500 hidden font-bold">प्रोसेसिंग... कृपया प्रतीक्षा करें...</p>
+    </main>
+
+    <footer class="mt-10 text-gray-500 text-sm">
+        Built for Bol AI Maker Project | Structure by Vivek
+    </footer>
+
+    <script>
+        async function generateProject() {
+            const userCode = document.getElementById('userHtml').value;
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+
+            if (!userCode.trim()) {
+                alert("कृपया index.html का कोड डालें!");
+                return;
+            }
+
+            btn.disabled = true;
+            status.classList.remove('hidden');
+
+            const zip = new JSZip();
+
+            // 1. Project Root Files
+            zip.file("build.gradle", `// Top-level build file\nbuildscript {\n    repositories { google(); mavenCentral() }\n    dependencies { classpath 'com.android.tools.build:gradle:8.12.0' }\n}\nallprojects { repositories { google(); mavenCentral() } }\ntasks.register("clean", Delete) { delete rootProject.buildDir }`);
+            zip.file("settings.gradle", `include ':app'`);
+            zip.file("gradle.properties", `android.enableJetifier=true\nandroid.useAndroidX=true`);
+
+            // 2. App Module
+            const app = zip.folder("app");
+            app.file("build.gradle", `plugins { id 'com.android.application' }\nandroid {\n    compileSdk 34\n    defaultConfig {\n        applicationId "com.myapp.bol.ai.maker"\n        minSdkVersion 21\n        targetSdkVersion 34\n        versionCode 1\n        versionName "1.0"\n    }\n}\ndependencies { implementation fileTree(dir: 'libs', include: ['*.jar']) }`);
+            app.file("proguard-rules.pro", `-repackageclasses\n-ignorewarnings\n-dontwarn`);
+
+            // 3. Src Main Structure
+            const main = app.folder("src").folder("main");
+            
+            // AndroidManifest.xml
+            main.file("AndroidManifest.xml", `<?xml version="1.0" encoding="utf-8"?>\n<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.myapp.bol.ai.maker">\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:theme="@style/AppTheme" android:name=".BolAiAppMakermain">\n        <activity android:name=".MainActivity" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.MAIN"/>\n                <category android:name="android.intent.category.LAUNCHER"/>\n            </intent-filter>\n        </activity>\n    </application>\n</manifest>`);
+
+            // Assets (यहाँ यूजर का कोड जाएगा)
+            main.folder("assets").file("index.html", userCode);
+
+            // Java Files
+            const javaPath = main.folder("java").folder("com").folder("myapp").folder("bol").folder("ai").folder("maker");
+            
+            // MainActivity.java (वही कोड जो आपने दिया)
+            javaPath.file("MainActivity.java", `package com.myapp.bol.ai.maker;\nimport android.app.Activity;\nimport android.os.Bundle;\nimport android.webkit.WebView;\nimport android.webkit.WebViewClient;\n\npublic class MainActivity extends Activity {\n    private WebView webview1;\n    @Override\n    protected void onCreate(Bundle _savedInstanceState) {\n        super.onCreate(_savedInstanceState);\n        webview1 = new WebView(this);\n        webview1.getSettings().setJavaScriptEnabled(true);\n        webview1.setWebViewClient(new WebViewClient());\n        setContentView(webview1);\n        webview1.loadUrl("file:///android_asset/index.html");\n    }\n}`);
+
+            // BolAiAppMakermain.java
+            javaPath.file("BolAiAppMakermain.java", `package com.myapp.bol.ai.maker;\nimport android.app.Application;\nimport android.content.Context;\n\npublic class BolAiAppMakermain extends Application {\n    private static Context mApplicationContext;\n    @Override\n    public void onCreate() {\n        mApplicationContext = getApplicationContext();\n        super.onCreate();\n    }\n    public static Context getContext() { return mApplicationContext; }\n}`);
+
+            // 4. Resources
+            const res = main.folder("res");
+            res.folder("values").file("strings.xml", `<resources><string name="app_name">Bol AI Maker</string></resources>`);
+            res.folder("values").file("styles.xml", `<resources><style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar"></style></resources>`);
+            res.folder("layout").file("main.xml", `<?xml version="1.0" encoding="utf-8"?>\n<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">\n<WebView android:id="@+id/webview1" android:layout_width="match_parent" android:layout_height="match_parent" />\n</LinearLayout>`);
+
+            // Generate ZIP and Download
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const element = document.createElement('a');
+                element.href = URL.createObjectURL(content);
+                element.download = "BolAI_Project_Source.zip";
+                document.body.appendChild(element);
+                element.click();
+                
+                status.innerText = "सफलता! प्रोजेक्ट डाउनलोड हो गया।";
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
