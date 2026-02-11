@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWB Project Generator</title>
-    <!-- JSZip Library for creating the archive -->
+    <title>Bol AI - SWB Project Generator</title>
+    <!-- JSZip Library (Required for creating the file) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
         :root {
-            --primary: #6200ea;
-            --bg: #f4f4f9;
-            --text: #333;
+            --primary: #ff5722;
+            --dark: #212121;
+            --light: #f5f5f5;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: sans-serif;
+            background-color: var(--light);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,93 +23,105 @@
             margin: 0;
             padding: 20px;
         }
-        .container {
+        .card {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             text-align: center;
         }
-        h1 {
-            margin-bottom: 1.5rem;
-            color: var(--primary);
+        h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
         }
-        .form-group {
-            margin-bottom: 1.5rem;
+        .upload-box {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: left;
+            transition: 0.3s;
+        }
+        .upload-box:hover {
+            border-color: var(--primary);
+            background: #fffbfb;
         }
         label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
         }
         input[type="file"] {
             width: 100%;
-            padding: 10px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        input[type="file"]:hover {
-            border-color: var(--primary);
+            font-size: 14px;
         }
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1rem;
-            border-radius: 8px;
+            padding: 15px 40px;
+            font-size: 16px;
+            border-radius: 50px;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
             font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+            transition: transform 0.2s;
+            width: 100%;
         }
         button:hover {
-            background-color: #3700b3;
+            transform: translateY(-2px);
+            background-color: #e64a19;
         }
         button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        .status {
+        #status {
             margin-top: 15px;
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 14px;
+            color: #333;
+        }
+        .note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>SWB Generator</h1>
-    <p>Upload your assets to generate the <b>.swb</b> file.</p>
+<div class="card">
+    <h2>SWB Generator</h2>
+    <p style="color:#666; margin-bottom:25px;">Upload assets to create a Sketchware Project (.swb)</p>
 
-    <div class="form-group">
-        <label for="appIcon">1. App Icon (Image)</label>
-        <input type="file" id="appIcon" accept="image/*">
+    <div class="upload-box">
+        <label>1. App Icon (Image)</label>
+        <input type="file" id="iconInput" accept="image/*">
     </div>
 
-    <div class="form-group">
-        <label for="indexHtml">2. Index HTML File</label>
-        <input type="file" id="indexHtml" accept=".html">
+    <div class="upload-box">
+        <label>2. Website Code (index.html)</label>
+        <input type="file" id="htmlInput" accept=".html">
     </div>
 
-    <button id="generateBtn" onclick="generateSWB()">Download .swb</button>
-    <div class="status" id="status"></div>
+    <button id="genBtn" onclick="createSWB()">Download .swb File</button>
+    <div id="status"></div>
+    <div class="note">Files will be merged with BolAi config automatically.</div>
 </div>
 
 <script>
-    // --- STATIC DATA FROM YOUR ZIP FILE ---
-    // These files will remain exactly the same in every download.
-
+    // --- STATIC CONFIGURATION FILES (EXACTLY AS PROVIDED) ---
+    
     const file_project_config = `{"min_sdk":"26","enable_bridgeless_themes":"false","enable_viewbinding":"false","app_class":".BolAiAppMakermain","target_sdk":"35","disable_old_methods":"false"}`;
     
     const file_permission = `["android.permission.INTERNET","android.permission.WRITE_EXTERNAL_STORAGE","android.permission.READ_EXTERNAL_STORAGE"]`;
     
-    const file_icon_data_json = `{"textures":false,"selected_texture":0,"scale":1.0,"corners":60.0,"gradient_background_type":false,"icon_size":250.0,"text":"","badge_text_color":16777215,"gradient_direction":"BOTTOM_TOP","score_effect":false,"icon_hp":0.0,"gradient_color2":0,"gradient_color1":16777215,"rotation":150.0,"text_hp":0.0,"badge_bg_color":0,"texture_color":16777215,"icon_vp":0.0,"text_vp":0.0,"badge":"","background_color":16777215,"text_size":100.0,"adaptive_icon":false,"text_color":0,"opacity":180.0,"icon_color_filter":16777215}`;
+    const file_icon_data = `{"textures":false,"selected_texture":0,"scale":1.0,"corners":60.0,"gradient_background_type":false,"icon_size":250.0,"text":"","badge_text_color":16777215,"gradient_direction":"BOTTOM_TOP","score_effect":false,"icon_hp":0.0,"gradient_color2":0,"gradient_color1":16777215,"rotation":150.0,"text_hp":0.0,"badge_bg_color":0,"texture_color":16777215,"icon_vp":0.0,"text_vp":0.0,"badge":"","background_color":16777215,"text_size":100.0,"adaptive_icon":false,"text_color":0,"opacity":180.0,"icon_color_filter":16777215}`;
     
     const file_proguard_rules = `-repackageclasses
 -ignorewarnings
@@ -118,86 +129,106 @@
 -dontnote`;
 
     const file_proguard = `{"debug":"false","enabled":"false"}`;
-    
     const file_stringfog = `{"enabled":"false"}`;
-    
-    const file_local_library = ``; // Empty file based on input
-    
+    const file_local_library = ``; 
     const file_custom_blocks = `[]`;
 
-    // --- GENERATION LOGIC ---
+    // --- SAFETY FILES (To prevent Restore Errors) ---
+    // Sketchware needs these even if empty
+    const file_logic = `[]`;
+    const file_view = `[]`;
+    const file_library = `[]`;
+    const file_resource = `[]`;
 
-    async function generateSWB() {
-        const iconInput = document.getElementById('appIcon');
-        const htmlInput = document.getElementById('indexHtml');
+    async function createSWB() {
+        const iconInput = document.getElementById('iconInput');
+        const htmlInput = document.getElementById('htmlInput');
         const status = document.getElementById('status');
-        const btn = document.getElementById('generateBtn');
+        const btn = document.getElementById('genBtn');
 
-        // Validation
         if (!iconInput.files[0] || !htmlInput.files[0]) {
-            alert("Please select both an App Icon and an index.html file.");
+            alert("Please select both an Icon and an HTML file!");
             return;
         }
 
         btn.disabled = true;
-        status.innerText = "Generating .swb file...";
+        btn.innerText = "Processing...";
+        status.innerText = "Generating project structure...";
 
         try {
             const zip = new JSZip();
 
-            // 1. Add Static Files (Exact content from your prompt)
+            // 1. Create 'data' folder structure (CRITICAL for Sketchware)
+            // We don't create a root folder, we put 'data' directly at the top level of the zip
+            
+            // --- Add Static Config Files ---
             zip.file("data/project_config", file_project_config);
             zip.file("data/permission", file_permission);
-            zip.file("data/files/app-icon/data.json", file_icon_data_json);
             zip.file("data/proguard-rules.pro", file_proguard_rules);
             zip.file("data/proguard", file_proguard);
             zip.file("data/stringfog", file_stringfog);
             zip.file("data/local_library", file_local_library);
             zip.file("data/custom_blocks", file_custom_blocks);
+            
+            // --- Add Safety Files (Prevents Crash) ---
+            zip.file("data/logic", file_logic);
+            zip.file("data/view", file_view);
+            zip.file("data/library", file_library);
+            zip.file("data/resource", file_resource);
 
-            // 2. Add User's HTML File
-            // Replaces: data/files/assets/index.html
-            const htmlContent = await readFile(htmlInput.files[0], 'text');
+            // --- Add App Icon Data ---
+            zip.file("data/files/app-icon/data.json", file_icon_data);
+
+            // --- Add User's HTML File ---
+            const htmlContent = await readFile(htmlInput.files[0]);
             zip.file("data/files/assets/index.html", htmlContent);
 
-            // 3. Add User's Icon
-            // Places it in: data/files/app-icon/icon.png (Standard naming for SWB)
-            const iconContent = await readFile(iconInput.files[0], 'arraybuffer');
-            // We rename whatever image they uploaded to 'icon.png' to ensure it works
-            zip.file("data/files/app-icon/icon.png", iconContent);
+            // --- Add User's Icon Image ---
+            // Rename it to icon.png regardless of original name
+            const iconBuffer = await readFileBuffer(iconInput.files[0]);
+            zip.file("data/files/app-icon/icon.png", iconBuffer);
 
-            // 4. Generate and Download
+            // --- Generate .swb File ---
+            status.innerText = "Compressing...";
             const content = await zip.generateAsync({type: "blob"});
             
-            // Create download link
+            // --- Trigger Download ---
             const link = document.createElement('a');
             link.href = URL.createObjectURL(content);
-            link.download = "project.swb"; // Force .swb extension
+            link.download = "project.swb"; // Extension is .swb
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            status.innerText = "Download started!";
-        } catch (e) {
-            console.error(e);
-            status.innerText = "Error generating file. Check console.";
-            alert("An error occurred.");
-        } finally {
+            status.innerText = "Success! File downloaded.";
+            btn.innerText = "Download Again";
             btn.disabled = false;
+
+        } catch (err) {
+            console.error(err);
+            status.innerText = "Error: " + err.message;
+            btn.disabled = false;
+            btn.innerText = "Try Again";
         }
     }
 
-    // Helper to read file content
-    function readFile(file, type) {
+    // Helper: Read file as Text
+    function readFile(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
-            if (type === 'text') {
-                reader.readAsText(file);
-            } else {
-                reader.readAsArrayBuffer(file);
-            }
+            reader.readAsText(file);
+        });
+    }
+
+    // Helper: Read file as ArrayBuffer (for Images)
+    function readFileBuffer(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
         });
     }
 </script>
