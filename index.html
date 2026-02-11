@@ -3,104 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bol AI | Auto APK Builder</title>
+    <title>Bol AI | Universal App Generator</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-dark { background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; width: 100%; }
-        .btn-grad { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+        body { font-family: 'Outfit', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; width: 100%; outline: none; transition: 0.3s; }
+        .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .radio-card { cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
+        .radio-card.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); transition: transform 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5); }
     </style>
 </head>
-<body class="min-h-screen p-6 flex flex-col items-center">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
 
-    <div class="max-w-5xl w-full">
+    <div class="w-full max-w-5xl">
         <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-                Bol AI APK Builder
-            </h1>
-            <p class="text-slate-400 mt-2">Source Code + Auto APK Build System (GitHub Actions)</p>
+            <h1 class="text-5xl font-extrabold text-white mb-2">Bol AI <span class="text-blue-500">App Engine</span></h1>
+            <p class="text-slate-400">Create apps for PC (Android Studio) or Mobile (Sketchware)</p>
         </header>
 
-        <div class="glass p-8 rounded-2xl shadow-2xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Inputs -->
-                <div class="space-y-4">
+        <div class="glass-panel rounded-3xl p-8 shadow-2xl">
+            
+            <!-- Platform Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div id="optPC" class="radio-card selected bg-slate-800 p-6 rounded-xl flex items-center gap-4" onclick="selectMode('pc')">
+                    <div class="h-12 w-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">PC</div>
                     <div>
-                        <label class="text-green-400 font-bold text-sm">App Name</label>
-                        <input type="text" id="appName" value="My BolAI App" class="input-dark">
-                    </div>
-                    <div>
-                        <label class="text-green-400 font-bold text-sm">Package Name</label>
-                        <input type="text" id="pkgName" value="com.myapp.bol.ai.maker" class="input-dark">
-                    </div>
-                    <div>
-                        <label class="text-green-400 font-bold text-sm">App Icon</label>
-                        <input type="file" id="appIcon" accept="image/*" class="input-dark cursor-pointer">
-                    </div>
-                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                        <h3 class="text-yellow-400 font-bold text-sm mb-2">⚠️ APK कैसे मिलेगा?</h3>
-                        <ol class="list-decimal list-inside text-xs text-slate-300 space-y-1">
-                            <li>नीचे दिए बटन से <b>ZIP डाउनलोड</b> करें।</li>
-                            <li>ZIP को Extract करें और GitHub पर अपलोड करें।</li>
-                            <li>GitHub Actions टैब में जाएं।</li>
-                            <li>वहाँ <b>Automatic APK Build</b> शुरू हो जाएगा।</li>
-                        </ol>
+                        <h3 class="font-bold text-lg text-white">Android Studio</h3>
+                        <p class="text-sm text-slate-400">Download Source Code (.zip)</p>
                     </div>
                 </div>
-
-                <!-- Code Editor -->
-                <div class="flex flex-col">
-                    <label class="text-green-400 font-bold text-sm mb-2">Index.html Code</label>
-                    <textarea id="userHtml" class="input-dark h-64 font-mono text-xs text-green-300" placeholder="Paste your HTML code here..."></textarea>
+                <div id="optMobile" class="radio-card bg-slate-800 p-6 rounded-xl flex items-center gap-4" onclick="selectMode('mobile')">
+                    <div class="h-12 w-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">M</div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Sketchware Pro</h3>
+                        <p class="text-sm text-slate-400">Download Project File (.swb)</p>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="generateProject()" id="btn" class="mt-8 w-full btn-grad text-white font-bold py-4 rounded-xl shadow-lg hover:scale-[1.02] transition-transform">
-                Download Project ZIP (With APK Builder)
+            <!-- Input Form -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-blue-400 mb-2">App Name</label>
+                        <input type="text" id="appName" placeholder="My App" class="input-field" value="BolAI App">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-blue-400 mb-2">Package Name</label>
+                        <input type="text" id="packageName" placeholder="com.example.app" class="input-field" value="com.myapp.bol.ai.maker">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-blue-400 mb-2">App Icon</label>
+                        <input type="file" id="appIcon" accept="image/*" class="input-field cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex flex-col h-full">
+                    <label class="block text-sm font-bold text-blue-400 mb-2">index.html Code</label>
+                    <textarea id="userHtml" class="input-field flex-grow font-mono text-sm text-green-300 h-48 resize-none" placeholder="Paste your HTML code here..."></textarea>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="generateProject()" id="genBtn" class="btn-primary w-full text-white font-bold py-5 rounded-xl text-xl shadow-lg flex justify-center items-center gap-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span id="btnText">Download Source Code (.zip)</span>
             </button>
-            
-            <p id="status" class="text-center text-green-400 mt-4 hidden font-mono text-sm">Processing... Please wait...</p>
+
+            <div id="status" class="mt-4 text-center hidden text-blue-400 font-bold animate-pulse">
+                Processing... Please wait...
+            </div>
         </div>
     </div>
 
     <script>
-        // --- JAVA CODE CONSTANTS (FULL CODE) ---
-        const JAVA_MAIN = `package PKG_NAME;
+        let currentMode = 'pc';
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('optPC').classList.remove('selected');
+            document.getElementById('optMobile').classList.remove('selected');
+            
+            if (mode === 'pc') {
+                document.getElementById('optPC').classList.add('selected');
+                document.getElementById('btnText').innerText = "Download Source Code (.zip)";
+            } else {
+                document.getElementById('optMobile').classList.add('selected');
+                document.getElementById('btnText').innerText = "Download Sketchware File (.swb)";
+            }
+        }
+
+        async function generateProject() {
+            const appName = document.getElementById('appName').value;
+            const pkgName = document.getElementById('packageName').value;
+            const userHtml = document.getElementById('userHtml').value || "<h1>Hello Bol AI</h1>";
+            const iconFile = document.getElementById('appIcon').files[0];
+            const btn = document.getElementById('genBtn');
+            const status = document.getElementById('status');
+
+            if (!pkgName.includes('.')) { alert("Invalid Package Name"); return; }
+
+            btn.disabled = true;
+            status.classList.remove('hidden');
+
+            const zip = new JSZip();
+
+            // --- ICON PROCESSING ---
+            let iconData = null;
+            if (iconFile) {
+                iconData = await iconFile.arrayBuffer();
+            } else {
+                // 1x1 Transparent Pixel Default
+                iconData = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="), c => c.charCodeAt(0));
+            }
+
+            if (currentMode === 'pc') {
+                // ==========================================
+                //  MODE 1: ANDROID STUDIO (PC)
+                // ==========================================
+                const pkgPath = pkgName.replace(/\./g, '/');
+
+                // Root Files
+                zip.file("build.gradle", `buildscript { repositories { google(); mavenCentral() } dependencies { classpath 'com.android.tools.build:gradle:8.12.0'; classpath 'com.google.gms:google-services:4.4.3' } } allprojects { repositories { google(); mavenCentral() } } tasks.register("clean", Delete) { delete rootProject.buildDir }`);
+                zip.file("settings.gradle", `include ':app'`);
+                zip.file("gradle.properties", `android.enableR8.fullMode=false\nandroid.enableJetifier=true\nandroid.useAndroidX=true`);
+
+                // App Module
+                const app = zip.folder("app");
+                app.file("build.gradle", `plugins { id 'com.android.application' } android { compileSdk 34 namespace "${pkgName}" defaultConfig { applicationId "${pkgName}" minSdkVersion 21 targetSdkVersion 34 versionCode 1 versionName "1.0" } buildTypes { release { minifyEnabled false proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' } } } dependencies { implementation fileTree(dir: 'libs', include: ['*.jar']) }`);
+                app.file("proguard-rules.pro", `-repackageclasses\n-ignorewarnings\n-dontwarn\n-dontnote`);
+
+                // Source
+                const main = app.folder("src").folder("main");
+                main.file("AndroidManifest.xml", `<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="${pkgName}"><uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/><uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/><application android:name=".BolAiAppMakermain" android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:theme="@style/AppTheme"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity><activity android:name=".DebugActivity" android:theme="@android:style/Theme.DeviceDefault.Light.Dialog.NoActionBar.MinWidth"/></application></manifest>`);
+                
+                main.folder("assets").file("index.html", userHtml);
+
+                // Java
+                const java = main.folder("java").folder(pkgPath);
+                java.file("BolAiAppMakermain.java", getJavaAppMain(pkgName));
+                java.file("MainActivity.java", getJavaMainActivity(pkgName));
+                java.file("SketchwareUtil.java", getJavaSketchwareUtil(pkgName));
+                java.file("FileUtil.java", getJavaFileUtil(pkgName));
+                java.file("DebugActivity.java", getJavaDebugActivity(pkgName));
+
+                // Res
+                const res = main.folder("res");
+                res.folder("layout").file("main.xml", `<?xml version="1.0" encoding="utf-8"?><LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"><WebView android:id="@+id/webview1" android:layout_width="match_parent" android:layout_height="match_parent" /></LinearLayout>`);
+                res.folder("values").file("strings.xml", `<resources><string name="app_name">${appName}</string></resources>`);
+                res.folder("values").file("styles.xml", `<resources><style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar"></style></resources>`);
+                res.folder("mipmap-xhdpi").file("ic_launcher.png", iconData);
+                res.folder("drawable-xhdpi").file("default_image.png", iconData);
+
+                zip.generateAsync({type:"blob"}).then(content => downloadFile(content, `${appName}_Source.zip`));
+
+            } else {
+                // ==========================================
+                //  MODE 2: SKETCHWARE (.SWB)
+                // ==========================================
+                
+                // 1. Root Icon
+                zip.file("icon.png", iconData);
+
+                // 2. Data Folder
+                const data = zip.folder("data");
+
+                // Project Config (Using user provided structure)
+                const configJson = {
+                    "min_sdk": "26",
+                    "my_sc_pkg_name": pkgName, // Critical for Sketchware
+                    "my_app_name": appName,
+                    "my_sc_reg_dt": "20240101",
+                    "enable_bridgeless_themes": "false",
+                    "enable_viewbinding": "false",
+                    "app_class": ".BolAiAppMakermain",
+                    "target_sdk": "35",
+                    "disable_old_methods": "false",
+                    "sc_id": "1", // Generic ID
+                    "sc_ver_code": "1",
+                    "sc_ver_name": "1.0"
+                };
+                data.file("project_config", JSON.stringify(configJson));
+
+                // Permissions
+                data.file("permission", `["android.permission.INTERNET","android.permission.WRITE_EXTERNAL_STORAGE","android.permission.READ_EXTERNAL_STORAGE"]`);
+
+                // Proguard & StringFog
+                data.file("proguard-rules.pro", `-repackageclasses\n-ignorewarnings\n-dontwarn\n-dontnote`);
+                data.file("proguard", `{"debug":"false","enabled":"false"}`);
+                data.file("stringfog", `{"enabled":"false"}`);
+                data.file("local_library", "");
+                data.file("custom_blocks", "[]");
+
+                // Files Folder (Assets & Icon)
+                const files = data.folder("files");
+                files.folder("assets").file("index.html", userHtml);
+                
+                // Icon Data
+                const iconFolder = files.folder("app-icon");
+                iconFolder.file("data.json", `{"textures":false,"selected_texture":0,"scale":1.0,"corners":60.0,"gradient_background_type":false,"icon_size":250.0,"text":"","badge_text_color":16777215,"gradient_direction":"BOTTOM_TOP","score_effect":false,"icon_hp":0.0,"gradient_color2":0,"gradient_color1":16777215,"rotation":150.0,"text_hp":0.0,"badge_bg_color":0,"texture_color":16777215,"icon_vp":0.0,"text_vp":0.0,"badge":"","background_color":16777215,"text_size":100.0,"adaptive_icon":false,"text_color":0,"opacity":180.0,"icon_color_filter":16777215}`);
+                
+                // Sketchware often keeps a copy of the icon in res
+                const resFolder = iconFolder.folder("res").folder("drawable-xhdpi");
+                resFolder.file("ic_launcher.png", iconData);
+
+                // IMPORTANT: Minimal Logic/View/File JSONs to make .swb valid
+                // Without these, Sketchware crashes on import.
+                data.file("file", `[{"name":"main","type":0,"orientation":1,"theme":0,"keyboard":false}]`);
+                data.file("view", `[{"name":"main","type":"main","layout":{"width":-1,"height":-1,"orientation":1,"backgroundColor":-1},"widgets":[{"type":10,"id":"webview1","width":-1,"height":-1}]}]`);
+                // Logic: OnCreate -> webview1.loadUrl("file:///android_asset/index.html")
+                data.file("logic", `[{"name":"main","eventName":"onCreate","type":"activity","parameters":[],"header":"","code":"webview1.loadUrl(\\"file:///android_asset/index.html\\");"}]`);
+                data.file("resource", `[]`);
+
+                zip.generateAsync({type:"blob"}).then(content => downloadFile(content, `${appName}.swb`));
+            }
+        }
+
+        function downloadFile(content, filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = filename;
+            link.click();
+            
+            document.getElementById('genBtn').disabled = false;
+            document.getElementById('status').classList.add('hidden');
+        }
+
+        // ==========================================
+        //  JAVA TEMPLATES (FULL CODE)
+        // ==========================================
+        
+        function getJavaAppMain(pkg) {
+            return `package ${pkg};
+import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Process;
+import android.util.Log;
+public class BolAiAppMakermain extends Application {
+    private static Context mApplicationContext;
+    public static Context getContext() { return mApplicationContext; }
+    @Override
+    public void onCreate() {
+        mApplicationContext = getApplicationContext();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.putExtra("error", Log.getStackTraceString(throwable));
+                startActivity(intent);
+                Process.killProcess(Process.myPid());
+                System.exit(1);
+            }
+        });
+        super.onCreate();
+    }
+}`;
+        }
+
+        function getJavaMainActivity(pkg) {
+            return `package ${pkg};
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.content.*;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.webkit.*;
+import android.graphics.Bitmap;
+import android.content.Context;
+import android.app.DownloadManager;
+import android.net.Uri;
+import android.os.Environment;
 import android.widget.Toast;
 public class MainActivity extends Activity {
     private WebView webview1;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle _savedInstanceState) {
+        super.onCreate(_savedInstanceState);
         setContentView(R.layout.main);
         webview1 = findViewById(R.id.webview1);
-        WebSettings webSettings = webview1.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setAllowFileAccess(true);
-        webSettings.setAllowContentAccess(true);
-        
+        webview1.getSettings().setJavaScriptEnabled(true);
+        webview1.getSettings().setDomStorageEnabled(true);
+        webview1.getSettings().setAllowFileAccess(true);
         webview1.setWebViewClient(new WebViewClient());
-        webview1.setWebChromeClient(new WebChromeClient());
         
         webview1.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public void copyToClipboard(String text) {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Copied Text", text);
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = android.content.ClipData.newPlainText("BolAI", text);
                 clipboard.setPrimaryClip(clip);
-                Toast.makeText(MainActivity.this, "Copied!", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "Copied!", Toast.LENGTH_SHORT).show());
             }
         }, "JSInterface");
 
@@ -115,153 +312,50 @@ public class MainActivity extends Activity {
         webview1.loadUrl("file:///android_asset/index.html");
     }
 }`;
+        }
 
-        const JAVA_APP = `package PKG_NAME;
-import android.app.Application;
-import android.content.Context;
-public class BolAiAppMakermain extends Application {
-    private static Context mApplicationContext;
-    public static Context getContext() { return mApplicationContext; }
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mApplicationContext = getApplicationContext();
-    }
-}`;
-
-        const JAVA_UTILS = `package PKG_NAME;
+        function getJavaSketchwareUtil(pkg) {
+            return `package ${pkg};
 import android.content.Context;
 import android.widget.Toast;
+import android.view.View;
+import android.util.TypedValue;
+import java.util.ArrayList;
+import java.util.HashMap;
 public class SketchwareUtil {
     public static void showMessage(Context c, String s) { Toast.makeText(c, s, Toast.LENGTH_SHORT).show(); }
-    public static int getDisplayWidthPixels(Context c) { return c.getResources().getDisplayMetrics().widthPixels; }
-    public static int getDisplayHeightPixels(Context c) { return c.getResources().getDisplayMetrics().heightPixels; }
+    public static int getLocationX(View _v) { int _location[] = new int[2]; _v.getLocationInWindow(_location); return _location[0]; }
+    public static int getLocationY(View _v) { int _location[] = new int[2]; _v.getLocationInWindow(_location); return _location[1]; }
+    public static float getDip(Context _context, int _input) { return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, _input, _context.getResources().getDisplayMetrics()); }
+    public static int getDisplayWidthPixels(Context _context) { return _context.getResources().getDisplayMetrics().widthPixels; }
+    public static int getDisplayHeightPixels(Context _context) { return _context.getResources().getDisplayMetrics().heightPixels; }
 }`;
+        }
 
-        const JAVA_FILE = `package PKG_NAME;
+        function getJavaFileUtil(pkg) {
+            return `package ${pkg};
 import java.io.File;
+import java.io.IOException;
 public class FileUtil {
     public static boolean isExistFile(String path) { return new File(path).exists(); }
-    public static void makeDir(String path) { new File(path).mkdirs(); }
+    public static void makeDir(String path) { if (!isExistFile(path)) new File(path).mkdirs(); }
+    public static void createNewFile(String path) { try { new File(path).createNewFile(); } catch(IOException e) { e.printStackTrace(); } }
 }`;
+        }
 
-        // --- GITHUB ACTIONS WORKFLOW (THE MAGIC PART) ---
-        const GITHUB_WORKFLOW = `name: Build APK
-
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk`;
-
-        async function generateProject() {
-            const appName = document.getElementById('appName').value;
-            const pkg = document.getElementById('pkgName').value;
-            const html = document.getElementById('userHtml').value || "<h1>Hello Bol AI</h1>";
-            const icon = document.getElementById('appIcon').files[0];
-            const btn = document.getElementById('btn');
-            const status = document.getElementById('status');
-
-            if(!pkg.includes('.')) { alert("Invalid Package Name"); return; }
-
-            btn.disabled = true;
-            status.classList.remove('hidden');
-
-            const zip = new JSZip();
-            const pkgPath = pkg.replace(/\./g, '/');
-
-            // 1. GITHUB ACTIONS FILE (Auto APK Builder)
-            zip.file(".github/workflows/build.yml", GITHUB_WORKFLOW);
-            zip.file("README.txt", "To get your APK:\n1. Upload these files to GitHub.\n2. Go to 'Actions' tab.\n3. Wait for build to finish.\n4. Download 'app-debug' artifact.");
-
-            // 2. GRADLE SETUP
-            zip.file("build.gradle", `buildscript { repositories { google(); mavenCentral() } dependencies { classpath 'com.android.tools.build:gradle:8.1.0' } } allprojects { repositories { google(); mavenCentral() } } tasks.register("clean", Delete) { delete rootProject.buildDir }`);
-            zip.file("settings.gradle", `include ':app'`);
-            zip.file("gradle.properties", `android.useAndroidX=true\nandroid.enableJetifier=true`);
-            
-            // Gradlew Wrapper (Essential for CI/CD)
-            const gradleWrapper = zip.folder("gradle").folder("wrapper");
-            gradleWrapper.file("gradle-wrapper.properties", "distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-8.0-bin.zip\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists");
-
-            // 3. APP MODULE
-            const app = zip.folder("app");
-            app.file("build.gradle", `plugins { id 'com.android.application' }\nandroid {\n    namespace "${pkg}"\n    compileSdk 34\n    defaultConfig {\n        applicationId "${pkg}"\n        minSdkVersion 21\n        targetSdkVersion 34\n        versionCode 1\n        versionName "1.0"\n    }\n}\ndependencies {\n    implementation 'androidx.appcompat:appcompat:1.6.1'\n}`);
-
-            // 4. SOURCE CODE
-            const main = app.folder("src").folder("main");
-            main.file("AndroidManifest.xml", `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <application android:name=".BolAiAppMakermain" android:label="${appName}" android:icon="@mipmap/ic_launcher" android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-        <activity android:name=".MainActivity" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-    </application>
-</manifest>`);
-
-            main.folder("assets").file("index.html", html);
-
-            const java = main.folder("java").folder(pkgPath);
-            const replacePkg = (code) => code.replaceAll("PKG_NAME", pkg);
-
-            java.file("MainActivity.java", replacePkg(JAVA_MAIN));
-            java.file("BolAiAppMakermain.java", replacePkg(JAVA_APP));
-            java.file("SketchwareUtil.java", replacePkg(JAVA_UTILS));
-            java.file("FileUtil.java", replacePkg(JAVA_FILE));
-
-            // 5. RESOURCES
-            const res = main.folder("res");
-            res.folder("layout").file("main.xml", `<?xml version="1.0" encoding="utf-8"?>\n<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent"><WebView android:id="@+id/webview1" android:layout_width="match_parent" android:layout_height="match_parent"/></LinearLayout>`);
-            res.folder("values").file("strings.xml", `<resources><string name="app_name">${appName}</string></resources>`);
-
-            // Icon
-            const mipmap = res.folder("mipmap-xhdpi");
-            if(icon) {
-                const buf = await icon.arrayBuffer();
-                mipmap.file("ic_launcher.png", buf);
-            } else {
-                mipmap.file("ic_launcher.png", new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,6,0,0,0,31,21,196,137,0,0,0,10,73,68,65,84,120,156,99,0,1,0,0,5,0,1,13,10,45,180,0,0,0,0,73,69,78,68,174,66,96,130]));
-            }
-
-            // Generate
-            zip.generateAsync({type:"blob"}).then(content => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(content);
-                a.download = "BolAI_Project_With_AutoBuild.zip";
-                a.click();
-                btn.disabled = false;
-                status.innerText = "ZIP Downloaded! Now upload to GitHub to get APK.";
-            });
+        function getJavaDebugActivity(pkg) {
+            return `package ${pkg};
+import android.app.Activity;
+import android.os.Bundle;
+import android.app.AlertDialog;
+public class DebugActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        String error = getIntent().getStringExtra("error");
+        new AlertDialog.Builder(this).setTitle("Error").setMessage(error).setPositiveButton("OK", (d,w)->finish()).show();
+    }
+}`;
         }
     </script>
 </body>
